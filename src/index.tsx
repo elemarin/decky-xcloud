@@ -10,6 +10,9 @@ import {
 import React, { VFC, useState, useEffect } from "react";
 import { FaGamepad } from "react-icons/fa";
 
+// Constants
+const MESSAGE_CLEAR_TIMEOUT_MS = 3000;
+
 interface StatusResponse {
   edge_installed: boolean;
   shortcut_created: boolean;
@@ -118,8 +121,8 @@ const Content: VFC<{ serverAPI: ServerAPI }> = ({ serverAPI }) => {
       console.error("Error launching Xbox Cloud Gaming:", error);
     } finally {
       setLoading(false);
-      // Clear message after 3 seconds
-      setTimeout(() => setMessage(""), 3000);
+      // Clear message after timeout
+      setTimeout(() => setMessage(""), MESSAGE_CLEAR_TIMEOUT_MS);
     }
   };
 

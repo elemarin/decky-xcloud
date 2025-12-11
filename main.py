@@ -9,7 +9,25 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+# Xbox Cloud Gaming constants
+XCLOUD_URL = "https://www.xbox.com/play"
+EDGE_FLATPAK_ID = "com.microsoft.Edge"
+
 class Plugin:
+    def _get_edge_launch_args(self, url: str) -> list:
+        """Get the Flatpak arguments for launching Edge with proper permissions"""
+        return [
+            "flatpak", "run",
+            "--command=/app/bin/microsoft-edge",
+            "--filesystem=xdg-run/pipewire-0",
+            "--device=all",
+            EDGE_FLATPAK_ID,
+            "--window-size=1024,640",
+            "--force-device-scale-factor=1.25",
+            "--device-scale-factor=1.25",
+            "--kiosk", url
+        ]
+
     async def check_edge_installed(self) -> bool:
         """Check if Microsoft Edge is installed via Flatpak"""
         try:
@@ -20,7 +38,7 @@ class Plugin:
                 timeout=10
             )
             logging.info(f"Flatpak list result: {result.stdout}")
-            return "com.microsoft.Edge" in result.stdout
+            return EDGE_FLATPAK_ID in result.stdout
         except Exception as e:
             logging.error(f"Error checking Edge installation: {e}")
             return False
@@ -41,7 +59,7 @@ class Plugin:
             
             # Install Microsoft Edge
             result = subprocess.run(
-                ["flatpak", "install", "-y", "flathub", "com.microsoft.Edge"],
+                ["flatpak", "install", "-y", "flathub", EDGE_FLATPAK_ID],
                 capture_output=True,
                 text=True,
                 timeout=300
@@ -92,19 +110,9 @@ class Plugin:
             # Create config directory if it doesn't exist
             os.makedirs(config_dir, exist_ok=True)
             
-            # Xbox Cloud Gaming URL
-            xcloud_url = "https://www.xbox.com/play"
-            
-            # Flatpak command to launch Edge with proper permissions
-            # Based on Microsoft's official guide
-            launch_command = (
-                "flatpak run --command=/app/bin/microsoft-edge "
-                "--filesystem=xdg-run/pipewire-0 "
-                "--device=all "
-                "com.microsoft.Edge "
-                f"--window-size=1024,640 --force-device-scale-factor=1.25 "
-                f"--device-scale-factor=1.25 --kiosk '{xcloud_url}'"
-            )
+            # Build launch command using the helper method
+            launch_args = self._get_edge_launch_args(XCLOUD_URL)
+            launch_command = " ".join(f"'{arg}'" if " " in arg else arg for arg in launch_args)
             
             # Create a desktop file for the shortcut
             desktop_file_path = os.path.expanduser("~/.local/share/applications/xcloud-gaming.desktop")
@@ -112,7 +120,7 @@ class Plugin:
 Name=Xbox Cloud Gaming
 Comment=Play Xbox games via cloud gaming
 Exec={launch_command}
-Icon=com.microsoft.Edge
+Icon={EDGE_FLATPAK_ID}
 Terminal=false
 Type=Application
 Categories=Game;
@@ -168,21 +176,10 @@ Categories=Game;
             if not edge_installed:
                 return {"success": False, "message": "Microsoft Edge is not installed"}
             
-            xcloud_url = "https://www.xbox.com/play"
-            
-            # Launch Edge with proper permissions
+            # Launch Edge with proper permissions using the helper method
+            launch_args = self._get_edge_launch_args(XCLOUD_URL)
             subprocess.Popen(
-                [
-                    "flatpak", "run",
-                    "--command=/app/bin/microsoft-edge",
-                    "--filesystem=xdg-run/pipewire-0",
-                    "--device=all",
-                    "com.microsoft.Edge",
-                    "--window-size=1024,640",
-                    "--force-device-scale-factor=1.25",
-                    "--device-scale-factor=1.25",
-                    "--kiosk", xcloud_url
-                ],
+                launch_args,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
