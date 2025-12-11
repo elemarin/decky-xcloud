@@ -7,7 +7,7 @@ import {
   ServerAPI,
   staticClasses,
 } from "decky-frontend-lib";
-import { VFC, useState, useEffect } from "react";
+import React, { VFC, useState, useEffect } from "react";
 import { FaGamepad } from "react-icons/fa";
 
 interface StatusResponse {
