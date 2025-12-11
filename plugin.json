@@ -1,0 +1,10 @@
+{
+  "name": "Xbox Cloud Gaming",
+  "author": "elemarin",
+  "flags": ["_root"],
+  "publish": {
+    "tags": ["gaming", "cloud", "xbox"],
+    "description": "An easier way to set up Xbox Cloud Gaming on Steam Deck",
+    "image": "https://raw.githubusercontent.com/elemarin/decky-xcloud/main/assets/icon.png"
+  }
+}
